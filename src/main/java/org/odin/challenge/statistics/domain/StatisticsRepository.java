@@ -1,5 +1,7 @@
 package org.odin.challenge.statistics.domain;
 
+import java.time.OffsetDateTime;
+
 public interface StatisticsRepository {
-  Statistics getStatisticsForTheLastNSeconds(int seconds);
+  Statistics getSince(OffsetDateTime since);
 }

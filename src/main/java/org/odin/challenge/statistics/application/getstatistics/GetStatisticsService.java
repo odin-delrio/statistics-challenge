@@ -2,6 +2,11 @@ package org.odin.challenge.statistics.application.getstatistics;
 
 import org.odin.challenge.statistics.domain.StatisticsRepository;
 
+import java.time.Duration;
+import java.time.OffsetDateTime;
+
+import static java.time.ZoneOffset.UTC;
+
 public class GetStatisticsService {
 
   /**
@@ -9,7 +14,7 @@ public class GetStatisticsService {
    * For this example, is just enough to hard-code here the desired value.
    * By placing this value here I'm making emphasis in that this is a business decision.
    */
-  private static final int DESIRED_STATISTICS_SECONDS = 60;
+  private static final Duration DESIRED_STATISTICS_TIME = Duration.ofSeconds(60);
 
   private final StatisticsRepository repository;
 
@@ -19,7 +24,7 @@ public class GetStatisticsService {
 
   public GetStatisticsResponse getStatistics() {
     return GetStatisticsResponse.fromDomainStatistics(
-        repository.getStatisticsForTheLastNSeconds(DESIRED_STATISTICS_SECONDS)
+        repository.getSince(OffsetDateTime.now(UTC).minusSeconds(DESIRED_STATISTICS_TIME.getSeconds()))
     );
   }
 }

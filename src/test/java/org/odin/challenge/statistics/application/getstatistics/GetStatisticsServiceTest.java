@@ -5,7 +5,7 @@ import org.odin.challenge.statistics.domain.Statistics;
 import org.odin.challenge.statistics.domain.StatisticsRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -24,7 +24,7 @@ public class GetStatisticsServiceTest {
     when(statistics.getCount()).thenReturn(10L);
 
     StatisticsRepository repository = mock(StatisticsRepository.class);
-    when(repository.getStatisticsForTheLastNSeconds(anyInt())).thenReturn(statistics);
+    when(repository.getSince(any())).thenReturn(statistics);
 
     GetStatisticsService service = new GetStatisticsService(repository);
 
