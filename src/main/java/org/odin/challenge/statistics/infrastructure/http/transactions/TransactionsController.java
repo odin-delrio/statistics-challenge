@@ -15,15 +15,17 @@ import static org.springframework.http.HttpStatus.CREATED;
 @RequestMapping(path = "/transactions")
 public class TransactionsController {
 
-  private final SaveTransactionService service;
+  private final SaveTransactionService transactionsService;
 
   public TransactionsController(SaveTransactionService service) {
-    this.service = service;
+    this.transactionsService = service;
   }
 
   @PostMapping
   public ResponseEntity saveTransaction(@RequestBody SaveTransactionBody body) {
-    SaveTransactionResponse response = service.save(new SaveTransactionRequest(body.getAmount(), body.getTimestamp()));
+    SaveTransactionResponse response = transactionsService.save(
+        new SaveTransactionRequest(body.getAmount(), body.getTimestamp())
+    );
 
     return response == SaveTransactionResponse.CREATED
         ? ResponseEntity.status(CREATED).build()
