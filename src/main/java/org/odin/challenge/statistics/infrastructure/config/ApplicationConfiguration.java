@@ -2,8 +2,11 @@ package org.odin.challenge.statistics.infrastructure.config;
 
 import org.odin.challenge.statistics.application.getstatistics.GetStatisticsService;
 import org.odin.challenge.statistics.application.savetransaction.SaveTransactionService;
+import org.odin.challenge.statistics.domain.CurrentDateTimeProvider;
 import org.odin.challenge.statistics.domain.Statistics;
 import org.odin.challenge.statistics.domain.StatisticsRepository;
+import org.odin.challenge.statistics.domain.TransactionTimeValidator;
+import org.odin.challenge.statistics.domain.TransactionsRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,8 +19,26 @@ public class ApplicationConfiguration {
   }
 
   @Bean
-  public SaveTransactionService saveTransactionService() {
-    return new SaveTransactionService();
+  public TransactionsRepository transactionsRepository() {
+    return transaction -> {};
+  }
+
+  @Bean
+  public CurrentDateTimeProvider currentDateTimeProvider() {
+    return new CurrentDateTimeProvider();
+  }
+
+  @Bean
+  public TransactionTimeValidator transactionValidator(CurrentDateTimeProvider currentDateTimeProvider) {
+    return new TransactionTimeValidator(currentDateTimeProvider);
+  }
+
+  @Bean
+  public SaveTransactionService saveTransactionService(
+      TransactionsRepository repository,
+      TransactionTimeValidator validator
+  ) {
+    return new SaveTransactionService(repository, validator);
   }
 
   @Bean

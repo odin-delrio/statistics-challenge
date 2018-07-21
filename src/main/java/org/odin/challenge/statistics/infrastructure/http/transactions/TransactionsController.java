@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+
 import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
@@ -23,8 +27,9 @@ public class TransactionsController {
 
   @PostMapping
   public ResponseEntity saveTransaction(@RequestBody SaveTransactionBody body) {
+    OffsetDateTime performedAt = OffsetDateTime.ofInstant(Instant.ofEpochMilli(body.getTimestamp()), ZoneOffset.UTC);
     SaveTransactionResponse response = transactionsService.save(
-        new SaveTransactionRequest(body.getAmount(), body.getTimestamp())
+        new SaveTransactionRequest(body.getAmount(), performedAt)
     );
 
     return response == SaveTransactionResponse.CREATED

@@ -16,6 +16,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,7 +34,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 @SpringBootTest(webEnvironment = RANDOM_PORT, classes = StatisticsApplication.class)
 public class TransactionsApiContractTest {
 
-  private static final String SOME_VALID_BODY = "{\"amount\": 5, \"timestamp\": 12345678}";
+  private static final OffsetDateTime SOME_DATE = OffsetDateTime.now(ZoneOffset.UTC);
+  private static final String SOME_VALID_BODY = "{\"amount\": 5, \"timestamp\": " + SOME_DATE.toInstant().toEpochMilli() + "}";
 
   @MockBean
   private SaveTransactionService saveTransactionService;
@@ -61,7 +64,7 @@ public class TransactionsApiContractTest {
 
   @Test
   public void shouldReturnBadRequestForBodyWithNoAmount() {
-    String body = "{\"timestamp\": 12345678}";
+    String body = "{\"timestamp\": 1478192204000}";
     RequestEntity request = createPostTransactionRequest(body);
 
     ResponseEntity<String> response = restTemplate.exchange(request, String.class);
@@ -75,7 +78,7 @@ public class TransactionsApiContractTest {
 
     restTemplate.exchange(request, String.class);
 
-    SaveTransactionRequest expectedBuiltRequest = new SaveTransactionRequest(5, 12345678);
+    SaveTransactionRequest expectedBuiltRequest = new SaveTransactionRequest(5, SOME_DATE);
     verify(saveTransactionService, times(1)).save(expectedBuiltRequest);
   }
 
