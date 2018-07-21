@@ -41,11 +41,6 @@ public class StatisticsTest {
   }
 
   @Test(expected = IncoherentStatisticsException.class)
-  public void statisticsWithIncoherentSumValueForMinAndMaxCreationShouldFail() {
-    new Statistics(100d, 60d, 55d, 2);
-  }
-
-  @Test(expected = IncoherentStatisticsException.class)
   public void statisticsWithMinGreaterThanMaxValueCreationShouldFail() {
     new Statistics(100d, 40d, 60d, 2);
   }
@@ -53,5 +48,43 @@ public class StatisticsTest {
   @Test(expected = IncoherentStatisticsException.class)
   public void statisticsWithNegativeLongCreationShouldFail() {
     new Statistics(0d, 0d, 0d, -1L);
+  }
+
+  @Test
+  public void emptyStatisticsUpdatedWithAnAmountShouldReturnUpdatedStatistics() {
+    Statistics statistics = Statistics.empty();
+    Statistics updatedStatistics = statistics.updateWithAmount(15d);
+    Statistics expected = new Statistics(15d, 15d, 15d, 1);
+
+    assertThat(updatedStatistics).isEqualTo(expected);
+  }
+
+  @Test
+  public void existentStatisticsUpdatedWithAnAmountShouldReturnUpdatedStatistics() {
+    Statistics statistics = new Statistics(15d, 15d, 15d, 1);
+    Statistics updatedStatistics = statistics.updateWithAmount(30d);
+    Statistics expected = new Statistics(45d, 30d, 15d, 2);
+
+    assertThat(updatedStatistics).isEqualTo(expected);
+  }
+
+  @Test
+  public void updateEmptyStatisticsWithAnotherStatisticsShouldReturnUpdatedOnes() {
+    Statistics statistics = Statistics.empty();
+    Statistics updateWith = new Statistics(15d, 15d, 15d, 1);
+    Statistics updatedStatistics = statistics.merge(updateWith);
+    Statistics expected = updateWith;
+
+    assertThat(updatedStatistics).isEqualTo(expected);
+  }
+
+  @Test
+  public void updateStatisticsWithAnotherStatisticsShouldReturnUpdatedOnes() {
+    Statistics statistics = new Statistics(150d, 15d, 10d, 10);
+    Statistics updateWith = new Statistics(40d, 25d, 15d, 2);
+    Statistics updatedStatistics = statistics.merge(updateWith);
+    Statistics expected = new Statistics(190d, 25d, 10d, 12);
+
+    assertThat(updatedStatistics).isEqualTo(expected);
   }
 }

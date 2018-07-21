@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import java.time.OffsetDateTime;
 
+import static java.time.Duration.ofSeconds;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -18,7 +19,9 @@ public class TransactionValidatorTest {
   private static final OffsetDateTime INVALID_DATE_IN_THE_FUTURE = NOW.plusSeconds(1);
 
   private final CurrentDateTimeProvider currentDateTimeProvider = mock(CurrentDateTimeProvider.class);
-  private final TransactionTimeValidator validator = new TransactionTimeValidator(currentDateTimeProvider);
+  private final TransactionTimeValidator validator = new TransactionTimeValidator(
+      currentDateTimeProvider, ofSeconds(60)
+  );
 
   @Before
   public void setUp() {

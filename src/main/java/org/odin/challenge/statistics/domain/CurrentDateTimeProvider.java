@@ -5,7 +5,7 @@ import java.time.OffsetDateTime;
 import static java.time.ZoneOffset.UTC;
 
 public class CurrentDateTimeProvider {
-  OffsetDateTime now() {
+  public OffsetDateTime now() {
     return OffsetDateTime.now(UTC);
   }
 }
