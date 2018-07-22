@@ -5,10 +5,12 @@
 
 ### Instructions
 ##### Building an launching tests
+Developed with JAVA 8, no extra requirements are needed for build and lauch the application.
+
 ```bash
 ./gradlew build
 ```
-Build status is shown in the travis badge above.
+Build status and coverage are shown in the badges above.
 
 ##### Running
 ```bash
@@ -20,8 +22,11 @@ Build status is shown in the travis badge above.
 Code is developed following the ports & adapters architecture (AKA hexagonal).
 
 By doing this, all the business logic happens in the application and domain layer.
-No infrastructure details are written there (framework, serialization stuff like @JsonPropertiy annotations), 
+No infrastructure details are written outside there (framework, serialization stuff like `@JsonProperty` annotations), 
 so, updating or even changing framework is possible.
+
+Also, every entity and value object in this project are immutable, each update/merge operation returns a new instance.
+This desing is very friendly with the thread safe requirement.
 
 ##### Application
 This is the entry point, where [all the available use cases](src/main/java/org/odin/challenge/statistics/application) of this application are located.
@@ -37,19 +42,19 @@ with an in memory solution using a JAVA ConcurrentHashMap.
 
 #### Testing
 All the code is properly tested with mostly unit tests.
-Also, I also written [contract tests](src/test/java/org/odin/challenge/statistics/contract) to ensure that the HTTP API can't be broken without breaking some tests.
+Also, I also written [contract tests](src/test/java/org/odin/challenge/statistics/contract) to ensure that the HTTP API can't be broken without breaking some tests (and therefore break the CI server build).
 
 #### In memory storage details
-For achieving the O(1) goal in the operations, I designed a storage that creates buckets for 
-every second. When a transaction is added, if the bucket already has Statistics information,
-this statistics are updated by merging the new ones and replacing the object 
-in that bucket (see merge method in `Statistics` entity).
+For achieving the O(1) goal, I designed a storage that creates buckets for every second. 
+When a transaction is added, if the bucket already has Statistics information,
+this statistics object is updated by merging the new one and then replacing the previous object 
+in the bucket (see merge method in `Statistics` entity).
 
-If no statistics are stored for that second, then they are created from the transaction amount and then stored.
+If no statistics are stored for that bucket, then they are created from the transaction amount and then stored.
 
 This is done with the `ConcurrentHashMap.merge()` method, which ensures that the operation will be always atomic and thread safe.
 
-At the end of each write operation, I make a cleanUp of stale transactions, our business requirement says
+At the end of each write operation, a cleanUp of stale transactions is performed, our business requirement says
 that we only want statistics from the last minute.
 
 These stale transactions statistics reside in our storage until a new write occur, but, this does not
@@ -57,8 +62,7 @@ affect to reads because the read operation always filter the stale statistics.
 
 With this approach, I will only have at most 60 buckets with Statistics, and stale statistics are not a problem.
 
-When a read occur, all the non staled statistics are retrieved and reduced by using the same merge method that we
-used before.
+When a read occur, all the non staled statistics are retrieved and `reduced` by using the same merge method used for update buckets.
 
 #### TransactionTime value object 
 It could seems strange to ask for the current time in the constructor of this Value Object,
@@ -90,8 +94,8 @@ Where:
 timestamp)
 
 Returns: Empty body with either 201 or 204.
-- 201 - in case of success
-- 204 - if transaction is older than 60 seconds
+- **201** - in case of success
+- **204** - if transaction is older than 60 seconds
 
 #### Get statistics
 This is the main endpoint of this task, this endpoint have to execute in constant time and
@@ -134,4 +138,4 @@ we could receive a transaction which have a timestamp of the past
 - Make sure to send the case in memory solution without database (including in-memory
 database)
 - Endpoints have to execute in constant time and memory (O(1))
-- Please​ ​complete​ ​the​ ​challenge​ ​using​ ​Java
+- Please complete the challenge using Java
