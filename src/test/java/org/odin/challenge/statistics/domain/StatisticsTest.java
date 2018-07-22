@@ -87,4 +87,15 @@ public class StatisticsTest {
 
     assertThat(updatedStatistics).isEqualTo(expected);
   }
+
+  @Test
+  public void updateWithDecimalsShouldBeHandledProperly() {
+    Statistics statistics = Statistics.empty()
+        .updateWithAmount(15.3d)
+        .updateWithAmount(15.3d)
+        .updateWithAmount(15.3d);
+
+    assertThat(statistics.getSum()).isEqualTo(45.9d);
+    assertThat(statistics.getAvg()).isEqualTo(15.3d);
+  }
 }

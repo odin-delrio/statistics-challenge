@@ -2,12 +2,15 @@ package org.odin.challenge.statistics.domain;
 
 import org.odin.challenge.statistics.domain.exceptions.IncoherentStatisticsException;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
+import static java.math.RoundingMode.HALF_UP;
+
 public class Statistics {
-  private final double sum;
-  private final double max;
-  private final double min;
+  private final BigDecimal sum;
+  private final BigDecimal max;
+  private final BigDecimal min;
   private final long count;
 
   public Statistics(double sum, double max, double min, long count) {
@@ -15,26 +18,26 @@ public class Statistics {
     guardAgainstIncoherentMinAndMax(max, min);
     guardAgainstInvalidCount(sum, max, min, count);
 
-    this.sum = sum;
-    this.max = max;
-    this.min = min;
+    this.sum = BigDecimal.valueOf(sum);
+    this.max = BigDecimal.valueOf(max);
+    this.min = BigDecimal.valueOf(min);
     this.count = count;
   }
 
   public static Statistics empty() {
-    return new Statistics(0d, 0d, 0d, 0L);
+    return new Statistics(0.0d, 0d, 0d, 0L);
   }
 
   public double getSum() {
-    return sum;
+    return sum.doubleValue();
   }
 
   public double getMax() {
-    return max;
+    return max.doubleValue();
   }
 
   public double getMin() {
-    return min;
+    return min.doubleValue();
   }
 
   public long getCount() {
@@ -44,12 +47,12 @@ public class Statistics {
   public double getAvg() {
     return count <= 0L
         ? 0d
-        : sum / (double) count;
+        : sum.divide(new BigDecimal(count), HALF_UP).doubleValue();
   }
 
   public Statistics updateWithAmount(double amount) {
     return new Statistics(
-        sum + amount,
+        sum.add(BigDecimal.valueOf(amount)).doubleValue(),
         getMaxComparedWith(amount),
         getMinComparedWith(amount),
         count + 1
@@ -58,7 +61,7 @@ public class Statistics {
 
   public Statistics merge(Statistics statistics) {
     return new Statistics(
-        sum + statistics.getSum(),
+        sum.add(BigDecimal.valueOf(statistics.getSum())).doubleValue(),
         getMaxComparedWith(statistics.getMax()),
         getMinComparedWith(statistics.getMin()),
         count + statistics.getCount()
@@ -68,13 +71,13 @@ public class Statistics {
   private double getMaxComparedWith(double maxToCompare) {
     return isEmpty()
         ? maxToCompare
-        : Math.max(max, maxToCompare);
+        : max.max(BigDecimal.valueOf(maxToCompare)).doubleValue();
   }
 
   private double getMinComparedWith(double minToCompare) {
     return isEmpty()
         ? minToCompare
-        : Math.min(min, minToCompare);
+        : min.min(BigDecimal.valueOf(minToCompare)).doubleValue();
   }
 
   private void guardAgainstInvalidCount(double sum, double max, double min, long count) {
@@ -108,10 +111,10 @@ public class Statistics {
       return false;
     }
     Statistics that = (Statistics) o;
-    return Double.compare(that.sum, sum) == 0 &&
-        Double.compare(that.max, max) == 0 &&
-        Double.compare(that.min, min) == 0 &&
-        count == that.count;
+    return count == that.count &&
+        Objects.equals(sum, that.sum) &&
+        Objects.equals(max, that.max) &&
+        Objects.equals(min, that.min);
   }
 
   @Override
