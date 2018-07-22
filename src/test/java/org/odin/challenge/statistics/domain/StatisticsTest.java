@@ -35,11 +35,6 @@ public class StatisticsTest {
     new Statistics(0d, 100d, 0d, 0);
   }
 
-  @Test(expected = IncoherentStatisticsException.class)
-  public void statisticsWithNegativeLongCreationShouldFail() {
-    new Statistics(0d, 0d, 0d, -1L);
-  }
-
   @Test
   public void emptyStatisticsUpdatedWithAnAmountShouldReturnUpdatedStatistics() {
     Statistics statistics = Statistics.empty();

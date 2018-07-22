@@ -5,28 +5,28 @@ import org.odin.challenge.statistics.domain.exceptions.IncoherentStatisticsExcep
 import java.math.BigDecimal;
 import java.util.Objects;
 
+import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 
 public class Statistics {
   private final BigDecimal sum;
   private final MinMaxAmount minMaxAmount;
-  private final long count;
+  private final TransactionsCount count;
 
-  public Statistics(double sum, double max, double min, long count) {
-    this(sum, new MinMaxAmount(BigDecimal.valueOf(min), BigDecimal.valueOf(max)), count);
-  }
-
-  public Statistics(double sum, MinMaxAmount minMaxAmount, long count) {
-    guardAgainstNegativeCount(count);
-    guardAgainstInvalidCount(sum, minMaxAmount, count);
+  public Statistics(double sum, MinMaxAmount minMaxAmount, TransactionsCount count) {
+    guardAgainstInvalidCount(sum, minMaxAmount, count.getCount());
 
     this.sum = BigDecimal.valueOf(sum);
     this.minMaxAmount = minMaxAmount;
     this.count = count;
   }
 
+  public Statistics(double sum, double max, double min, long count) {
+    this(sum, new MinMaxAmount(BigDecimal.valueOf(min), BigDecimal.valueOf(max)), new TransactionsCount(count));
+  }
+
   public static Statistics empty() {
-    return new Statistics(0.0d, 0d, 0d, 0L);
+    return new Statistics(0.0d, new MinMaxAmount(ZERO, ZERO), new TransactionsCount(0L));
   }
 
   public double getSum() {
@@ -42,20 +42,20 @@ public class Statistics {
   }
 
   public long getCount() {
-    return count;
+    return count.getCount();
   }
 
   public double getAvg() {
-    return count <= 0L
+    return count.getCount() <= 0L
         ? 0d
-        : sum.divide(new BigDecimal(count), HALF_UP).doubleValue();
+        : sum.divide(new BigDecimal(count.getCount()), HALF_UP).doubleValue();
   }
 
   public Statistics updateWithAmount(double amount) {
     return new Statistics(
         sum.add(BigDecimal.valueOf(amount)).doubleValue(),
         isEmpty() ? new MinMaxAmount(BigDecimal.valueOf(amount)) : minMaxAmount.updateWithAmount(BigDecimal.valueOf(amount)),
-        count + 1
+        new TransactionsCount(count.getCount() + 1)
     );
   }
 
@@ -63,7 +63,7 @@ public class Statistics {
     return new Statistics(
         sum.add(BigDecimal.valueOf(statistics.getSum())).doubleValue(),
         isEmpty() ? statistics.minMaxAmount : minMaxAmount.merge(statistics.minMaxAmount),
-        count + statistics.getCount()
+        new TransactionsCount(count.getCount() + statistics.getCount())
     );
   }
 
@@ -74,14 +74,8 @@ public class Statistics {
     }
   }
 
-  private void guardAgainstNegativeCount(long count) {
-    if (count < 0L) {
-      throw new IncoherentStatisticsException("Count can't be negative.");
-    }
-  }
-
   private boolean isEmpty() {
-    return count == 0L;
+    return count.isEmpty();
   }
 
   @Override
@@ -93,19 +87,18 @@ public class Statistics {
       return false;
     }
     Statistics that = (Statistics) o;
-    return count == that.count &&
-        Objects.equals(sum, that.sum) &&
-        Objects.equals(minMaxAmount, that.minMaxAmount);
+    return Objects.equals(sum, that.sum) &&
+        Objects.equals(minMaxAmount, that.minMaxAmount) &&
+        Objects.equals(count, that.count);
   }
 
   @Override
   public int hashCode() {
-
     return Objects.hash(sum, minMaxAmount, count);
   }
 
   @Override
   public String toString() {
-    return String.format("Statistics(sum=%.2f, max=%.2f, min=%.2f, count=%d)", sum, getMin(), getMax(), count);
+    return String.format("Statistics(sum=%.2f, max=%.2f, min=%.2f, count=%d)", sum, getMin(), getMax(), count.getCount());
   }
 }
