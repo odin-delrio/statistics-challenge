@@ -36,16 +36,6 @@ public class StatisticsTest {
   }
 
   @Test(expected = IncoherentStatisticsException.class)
-  public void statisticsWithIncoherentMinValueForCountCreationShouldFail() {
-    new Statistics(0d, 0d, 10d, 0);
-  }
-
-  @Test(expected = IncoherentStatisticsException.class)
-  public void statisticsWithMinGreaterThanMaxValueCreationShouldFail() {
-    new Statistics(100d, 40d, 60d, 2);
-  }
-
-  @Test(expected = IncoherentStatisticsException.class)
   public void statisticsWithNegativeLongCreationShouldFail() {
     new Statistics(0d, 0d, 0d, -1L);
   }

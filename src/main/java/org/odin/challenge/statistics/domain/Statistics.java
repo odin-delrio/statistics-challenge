@@ -9,18 +9,19 @@ import static java.math.RoundingMode.HALF_UP;
 
 public class Statistics {
   private final BigDecimal sum;
-  private final BigDecimal max;
-  private final BigDecimal min;
+  private final MinMaxAmount minMaxAmount;
   private final long count;
 
   public Statistics(double sum, double max, double min, long count) {
+    this(sum, new MinMaxAmount(BigDecimal.valueOf(min), BigDecimal.valueOf(max)), count);
+  }
+
+  public Statistics(double sum, MinMaxAmount minMaxAmount, long count) {
     guardAgainstNegativeCount(count);
-    guardAgainstIncoherentMinAndMax(max, min);
-    guardAgainstInvalidCount(sum, max, min, count);
+    guardAgainstInvalidCount(sum, minMaxAmount, count);
 
     this.sum = BigDecimal.valueOf(sum);
-    this.max = BigDecimal.valueOf(max);
-    this.min = BigDecimal.valueOf(min);
+    this.minMaxAmount = minMaxAmount;
     this.count = count;
   }
 
@@ -33,11 +34,11 @@ public class Statistics {
   }
 
   public double getMax() {
-    return max.doubleValue();
+    return minMaxAmount.getMax().doubleValue();
   }
 
   public double getMin() {
-    return min.doubleValue();
+    return minMaxAmount.getMin().doubleValue();
   }
 
   public long getCount() {
@@ -53,8 +54,7 @@ public class Statistics {
   public Statistics updateWithAmount(double amount) {
     return new Statistics(
         sum.add(BigDecimal.valueOf(amount)).doubleValue(),
-        getMaxComparedWith(amount),
-        getMinComparedWith(amount),
+        isEmpty() ? new MinMaxAmount(BigDecimal.valueOf(amount)) : minMaxAmount.updateWithAmount(BigDecimal.valueOf(amount)),
         count + 1
     );
   }
@@ -62,33 +62,15 @@ public class Statistics {
   public Statistics merge(Statistics statistics) {
     return new Statistics(
         sum.add(BigDecimal.valueOf(statistics.getSum())).doubleValue(),
-        getMaxComparedWith(statistics.getMax()),
-        getMinComparedWith(statistics.getMin()),
+        isEmpty() ? statistics.minMaxAmount : minMaxAmount.merge(statistics.minMaxAmount),
         count + statistics.getCount()
     );
   }
 
-  private double getMaxComparedWith(double maxToCompare) {
-    return isEmpty()
-        ? maxToCompare
-        : max.max(BigDecimal.valueOf(maxToCompare)).doubleValue();
-  }
-
-  private double getMinComparedWith(double minToCompare) {
-    return isEmpty()
-        ? minToCompare
-        : min.min(BigDecimal.valueOf(minToCompare)).doubleValue();
-  }
-
-  private void guardAgainstInvalidCount(double sum, double max, double min, long count) {
-    if (count == 0L && (sum != 0d || max != 0d || min != 0d)) {
+  private void guardAgainstInvalidCount(double sum, MinMaxAmount minMaxAmount, long count) {
+    if (count == 0L
+        && (sum != 0d || minMaxAmount.getMin().doubleValue() != 0d || minMaxAmount.getMax().doubleValue() != 0d)) {
       throw new IncoherentStatisticsException("Count is 0 and one of the other values is greater than 0.");
-    }
-  }
-
-  private void guardAgainstIncoherentMinAndMax(double max, double min) {
-    if (min > max) {
-      throw new IncoherentStatisticsException("Min value is greater than max value, this is not possible.");
     }
   }
 
@@ -113,17 +95,17 @@ public class Statistics {
     Statistics that = (Statistics) o;
     return count == that.count &&
         Objects.equals(sum, that.sum) &&
-        Objects.equals(max, that.max) &&
-        Objects.equals(min, that.min);
+        Objects.equals(minMaxAmount, that.minMaxAmount);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(sum, max, min, count);
+
+    return Objects.hash(sum, minMaxAmount, count);
   }
 
   @Override
   public String toString() {
-    return String.format("Statistics(sum=%.2f, max=%.2f, min=%.2f, count=%d)", sum, max, min, count);
+    return String.format("Statistics(sum=%.2f, max=%.2f, min=%.2f, count=%d)", sum, getMin(), getMax(), count);
   }
 }
