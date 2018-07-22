@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/odin-delrio/statistics-challenge.svg?branch=master)](https://travis-ci.org/odin-delrio/statistics-challenge)
+[![codecov](https://codecov.io/gh/odin-delrio/statistics-challenge/branch/master/graph/badge.svg)](https://codecov.io/gh/odin-delrio/statistics-challenge)
 
 # Statistics challenge
 
