@@ -14,6 +14,58 @@ Build status is shown in the travis badge above.
 ./gradlew bootRun
 ```
 
+### FAQ
+#### Architecture overview
+Code is developed following the ports & adapters architecture (AKA hexagonal).
+
+By doing this, all the business logic happens in the application and domain layer.
+No infrastructure details are written there (framework, serialization stuff like @JsonPropertiy annotations), 
+so, updating or even changing framework is possible.
+
+##### Application
+This is the entry point, where [all the available use cases](src/main/java/org/odin/challenge/statistics/application) of this application are located.
+
+##### Domain
+Then, we have the [domain layer](src/main/java/org/odin/challenge/statistics/domain), where Statistics and Transaction entities are modeled, among with the needed Value Objects.
+Business logic like merging statistics or validations happens in this layer.
+
+##### Infrastructure
+And in the end, the infrastructure layer, where the framework is configured, the HTTP port is written in the form 
+of Spring Boot controllers and statistics and transactions repositories are implemented here
+with an in memory solution using a JAVA ConcurrentHashMap.
+
+#### Testing
+All the code is properly tested with mostly unit tests.
+Also, I also written [contract tests](src/test/java/org/odin/challenge/statistics/contract) to ensure that the HTTP API can't be broken without breaking some tests.
+
+#### In memory storage details
+For achieving the O(1) goal in the operations, I designed a storage that creates buckets for 
+every second. When a transaction is added, if the bucket already has Statistics information,
+this statistics are updated by merging the new ones and replacing the object 
+in that bucket (see merge method in `Statistics` entity).
+
+If no statistics are stored for that second, then they are created from the transaction amount and then stored.
+
+This is done with the `ConcurrentHashMap.merge()` method, which ensures that the operation will be always atomic and thread safe.
+
+At the end of each write operation, I make a cleanUp of stale transactions, our business requirement says
+that we only want statistics from the last minute.
+
+These stale transactions statistics reside in our storage until a new write occur, but, this does not
+affect to reads because the read operation always filter the stale statistics.
+
+With this approach, I will only have at most 60 buckets with Statistics, and stale statistics are not a problem.
+
+When a read occur, all the non staled statistics are retrieved and reduced by using the same merge method that we
+used before.
+
+#### TransactionTime value object 
+It could seems strange to ask for the current time in the constructor of this Value Object,
+it was a trade off, I had to decide between having tests relying on current machine time and
+having tests that I can control 100%.
+Since creation of that object happens only in one place in production code, I went for having tests controlled.
+
+----
 
 ### Specs
 We would like to have a restful API for our statistics. The main use case for our API is to
