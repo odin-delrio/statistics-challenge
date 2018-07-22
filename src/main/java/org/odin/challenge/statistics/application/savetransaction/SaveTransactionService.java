@@ -1,27 +1,31 @@
 package org.odin.challenge.statistics.application.savetransaction;
 
+import org.odin.challenge.statistics.domain.CurrentDateTimeProvider;
 import org.odin.challenge.statistics.domain.Transaction;
-import org.odin.challenge.statistics.domain.TransactionTimeValidator;
+import org.odin.challenge.statistics.domain.TransactionTime;
 import org.odin.challenge.statistics.domain.TransactionsRepository;
+import org.odin.challenge.statistics.domain.exceptions.InvalidTransactionTimeException;
 
 public class SaveTransactionService {
 
   private final TransactionsRepository repository;
-  private final TransactionTimeValidator transactionValidator;
+  private CurrentDateTimeProvider currentDateTimeProvider;
 
-  public SaveTransactionService(TransactionsRepository repository, TransactionTimeValidator transactionValidator) {
+  public SaveTransactionService(TransactionsRepository repository, CurrentDateTimeProvider currentDateTimeProvider) {
     this.repository = repository;
-    this.transactionValidator = transactionValidator;
+    this.currentDateTimeProvider = currentDateTimeProvider;
   }
 
   public SaveTransactionResponse save(SaveTransactionRequest request) {
-    Transaction transaction = new Transaction(request.getAmount(), request.getPerformedAt());
-
-    if (transactionValidator.isValid(transaction)) {
+    try {
+      Transaction transaction = new Transaction(
+          request.getAmount(),
+          new TransactionTime(request.getPerformedAt(), currentDateTimeProvider.now())
+      );
       repository.save(transaction);
       return SaveTransactionResponse.CREATED;
+    } catch(InvalidTransactionTimeException e) {
+      return SaveTransactionResponse.IGNORED;
     }
-
-    return SaveTransactionResponse.IGNORED;
   }
 }

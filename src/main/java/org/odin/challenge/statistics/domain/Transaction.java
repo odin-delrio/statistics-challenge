@@ -1,12 +1,10 @@
 package org.odin.challenge.statistics.domain;
 
-import java.time.OffsetDateTime;
-
 public class Transaction {
   private final double amount;
-  private final OffsetDateTime performedAt;
+  private final TransactionTime performedAt;
 
-  public Transaction(double amount, OffsetDateTime performedAt) {
+  public Transaction(double amount, TransactionTime performedAt) {
     this.amount = amount;
     this.performedAt = performedAt;
   }
@@ -15,7 +13,7 @@ public class Transaction {
     return amount;
   }
 
-  public OffsetDateTime getPerformedAt() {
+  public TransactionTime getPerformedAt() {
     return performedAt;
   }
 }
