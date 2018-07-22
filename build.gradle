@@ -29,6 +29,10 @@ dependencies {
 	testCompile('org.assertj:assertj-core:3.10.0')
 }
 
+configurations {
+	bootJar.archiveName = 'app.jar'
+}
+
 jacocoTestReport {
     reports {
         xml.enabled true

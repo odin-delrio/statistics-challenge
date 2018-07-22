@@ -5,8 +5,9 @@
 
 ### Instructions
 ##### Building an launching tests
-Developed with JAVA 8, no extra requirements are needed for build and lauch the application.
+Developed with JAVA 8, no extra requirements are needed for build and launch the application.
 
+Building an launching tests:
 ```bash
 ./gradlew build
 ```
@@ -15,6 +16,13 @@ Build status and coverage are shown in the badges above.
 ##### Running
 ```bash
 ./gradlew bootRun
+```
+
+Alternatively, your can run this project with docker, since the Dockerfile contains
+a multi-stage build, no build in the host machine is needed before:
+```bash
+docker build .
+docker run -p 8080:8080 <imageId>
 ```
 
 ### FAQ
